@@ -1,0 +1,75 @@
+import(random)
+cantidad_amigos = randint(4, 10)
+amigos = print(f"Amigos que vienen: {cantidad_amigos}")
+i = 0 
+entonces los tomo como False y si los llego a tener se convierten en True
+
+prepizza = False
+salsa_de_tomate = False
+muzzarella = False
+ 
+cocacola = False
+ron = False
+whisky = False
+ 
+while i <= cantidad_amigos:
+  ingrediente = randint(1, 6)
+  if ingrediente == 1:
+    prepizza = True
+    print("Amigo trae prepizza")
+  if ingrediente == 2: 
+    salsa_de_tomate = True
+    print("Amigo trae salsa de tomate")
+  if ingrediente == 3:
+    muzzarella = True 
+    print("Amigo trae muzzarella")
+  if ingrediente == 4:
+    cocacola = True
+    print("Amigo trae Coca-Cola")
+  if ingrediente == 5:
+    ron = True
+    print("Amigo trae Ron")
+  if ingrediente == 6: 
+    whisky = True 
+    print("Amigo trae Whisky")
+  i += 1
+
+hay_pizza = False
+if (prepizza == True) and (salsa_de_tomate == True) and (muzzarella == True):
+  hay_pizza = True
+else:
+  hay_pizza = False 
+ 
+if: hay_pizza == True
+  comemos_pizza = Pizza
+  
+if cocacola == True:
+  hay_cocacola = True 
+if (ron == True) and (cocacola == True):
+  hay_roncola = True 
+if (Whisky == True) and (cocacola == True):
+  hay_whiscola = True 
+if whisky == True:
+  hay_whisky = True
+if ron == True
+  hay_ron = True
+ 
+if hay_cocacola == True:
+  tomamos_cocacola = Coca-Cola
+if hay_roncola == True:
+  tomamos_roncola = RonCola 
+if hay_whiscola == True:
+  tomamos_whiscola = WhisCola
+if hay_whisky == True:
+  tomamos_whisky = Whisky  
+if hay_ron == True:
+  tomamos_ron = Ron
+ 
+print("Menu
+==== 
+comemos_pizza
+tomamos_cocacola
+tomamos_roncola
+tomamos_whiscola
+tomamos_whisky
+tomamos_ron)

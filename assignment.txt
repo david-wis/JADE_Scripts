@@ -1,0 +1,89 @@
+Juan desea organizar una fiesta con sus amigos, pero antes quiere simular qué alimentos y bebidas podrían consumirse, según la cantidad de amigos que vengan y los productos que cada uno pueda traer.
+
+Se debe desarrollar un programa en Python que simule el menú de la fiesta por medio de los siguientes pasos:
+
+1.Determina al azar la cantidad de amigos que llegan a la fiesta usando un número al azar entre 4 y 10 (ambos valores incluidos). Indicar por pantalla cuántos amigos son. (0.25 ptos)
+
+
+
+2.Por cada amigo, se debe determinar al azar que es lo que trajo a la fiesta. Indicar por pantalla que eligió cada amigo. (0.25 ptos) Las opciones son:
+
+1. Prepizza
+
+2. Salsa de tomate
+
+3. Muzzarella
+
+4. Coca-Cola
+
+5. Ron
+
+6. Whisky
+
+
+
+3.Determinar si en la fiesta se come o no pizza. Para poder comer pizza debe haber por lo menos uno de cada uno de los     siguientes ingredientes (0.75 ptos):
+
+Prepizza
+Salsa de tomate
+Muzzarella
+
+4.Determinar todas las opciones de lo que se puede tomar (0.75 ptos):
+
+Coca (Tiene que haber por lo menos una Coca-Cola)
+RonCola (Tiene que haber Ron y Coca-Cola)
+WhisCola (Tiene que haber Whisky y Coca-Cola)
+Whisky (Tiene que haber Whisky)
+Ron (Tiene que haber Ron)
+
+5.Imprimir el menú de la fiesta, indicando las opciones de comida y bebida(1.0 ptos). Seguir el formato presentado en los ejemplos.
+
+
+
+---
+Ejemplo 1
+Amigos que vienen: 5
+
+Amigo trae Prepizza
+
+Amigo trae Prepizza
+Amigo trae Muzzarella
+Amigo trae Coca-Cola
+Amigo trae Salsa de tomate
+
+Menu
+====
+Pizza
+Coca-Cola
+
+------
+
+Ejemplo 2
+
+Amigos que vienen: 7
+
+Amigo trae Ron
+Amigo trae Coca-Cola
+Amigo trae Muzzarella
+Amigo trae Coca-Cola
+Amigo trae Coca-Cola
+Amigo trae Salsa de tomate
+Amigo trae Salsa de tomate
+
+Menu
+====
+Coca-Cola
+Ron
+RonCola
+---
+
+Ejemplo 3
+Amigos que vienen: 4
+
+Amigo trae Muzzarella
+Amigo trae Muzzarella
+Amigo trae Salsa de tomate
+Amigo trae Salsa de tomate
+
+Menu
+====

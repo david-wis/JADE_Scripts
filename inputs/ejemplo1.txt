@@ -1,0 +1,69 @@
+from random import randint
+cantidad_amigos = randint(4, 10)
+vueltas = 0
+prepizza = 0
+salsa = 0
+muzza = 0
+coca = 0
+ron = 0
+whisky = 0﻿﻿﻿
+print(f"Amigos que vienen: {cantidad_amigos}")
+while vueltas < cantidad_amigos:
+  eleccion = randint(1, 6)
+  if eleccion == 1:
+    print("Amigo trae Prepizza.")﻿
+    prepizza += 1
+  elif eleccion == 2:
+    print("Amigo trae Salsa de Tomate.")﻿﻿
+    salsa += 1
+  elif eleccion == 3:
+    print("Amigo trae Muzzarella.")﻿﻿
+    muzza += 1
+  elif eleccion == 4:
+    print("Amigo trae Coca Cola.")﻿
+    coca += 1
+  elif eleccion == 5:
+    print("Amigo trae Ron.")﻿
+    ron += 1
+  elif eleccion == 6:
+    print("Amigo trae Whisky.")﻿
+    whisky += 1
+  vueltas += 1
+ 
+hay_prepizza = False
+hay_salsa = False
+hay_muzza = False
+hay_coca = False
+hay_ron = False
+hay_whisky = False﻿﻿
+ 
+if prepizza >= 1:
+  hay_prepizza = True
+if salsa >= 1:
+  hay_salsa = True
+if muzza >= 1:
+  hay_muzza = True
+if coca >= 1:
+  hay_coca = True
+if ron >= 1:
+  hay_ron = True
+if whisky >= 1:
+  hay_whisky = True
+ 
+﻿﻿print("Menu")
+print("----")
+print("----")
+ 
+if hay_prepizza and hay_salsa and hay_muzza:
+  print("Pizza")
+if hay_coca:
+  print("Coca-Cola")
+  if hay_ron:
+    print("RonCola")
+  if hay_whisky:
+    print("WhisCola")
+if hay_ron:
+  print("Ron")
+if hay_whisky:
+  print("Whisky")﻿
+﻿
