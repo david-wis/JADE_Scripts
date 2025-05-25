@@ -1,6 +1,6 @@
 from fixers.llm_utils import ask
 
-def fix(code: str) -> str:
+def fix(code: str) -> dict:
     prompt = f"""
     # Instructions
     You are an autonomous agent responsible for finding and fixing infinite loops in Python code.
@@ -8,9 +8,16 @@ def fix(code: str) -> str:
     You MUST return the fixed code, ensuring that it is syntactically correct and logically sound.
     You MUST not make any comments or explanations, just return the fixed code.
 
+    You MUST return the code in a json format with three fields: "code", "error", and "has_more".
+    Return a pure json object with no additional text or formatting.
+    The "code" field should contain the fixed code.
+    The "error" field should be an empty string if there are no errors, or the string "Infinite loop" if an infinite loop was found and fixed.
+    The "has_more" field should be a boolean indicating whether there are more infinite loops in the code that were not fixed.
+
     You are allowed to:
     - Modify loop conditions.
     - Modify variables in the loop to ensure termination (in accordance with the program's logic).
+    - Fix ONLY one infinite loop 
 
     You are NOT allowed to:
     - Remove loops that serve a functional purpose.

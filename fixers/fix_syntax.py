@@ -1,5 +1,5 @@
 import autopep8
 
-def fix(code: str) -> str:
+def fix(code: str) -> dict:
     fixed_code = autopep8.fix_code(code)
-    return fixed_code
+    return {"code": fixed_code, "error": ""}
