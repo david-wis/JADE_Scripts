@@ -1,6 +1,10 @@
+import mlflow
 from langgraph.graph import StateGraph
 from typing import TypedDict
 import datetime
+import os
+
+mlflow.set_tracking_uri("http://localhost:8080")
 
 class CodeState(TypedDict):
     code: str
@@ -40,47 +44,62 @@ graph.add_node("FixLoop", apply_infinite_loop_fixer)
 graph.add_node("FixTautologies", apply_tautology_fixer)
 
 graph.set_entry_point("FixSyntax")
-
 graph.add_edge("FixSyntax", "FixLoop")
+
 graph.add_conditional_edges(
     "FixLoop",
     lambda state: "FixTautologies" if not state["has_more"] else "FixLoop",
     ["FixTautologies", "FixLoop"]
 )
+
 graph.add_conditional_edges(
     "FixTautologies",
     lambda state: "__end__" if not state["has_more"] else "FixTautologies",
     ["FixTautologies", "__end__"]
 )
 
-# graph.add_edge("FixLoop","FixTautologies")
-
 app = graph.compile()
 
-start = datetime.datetime.now()
-result = app.invoke({
-    "code": """
-        def example():
-            i = 0
-            if i == 0:
-                print("i is zero")
-            while i < 10:
-                print("This is an infinite loop")
-                if i > -1:
-                    print("Hello")
-    """,
-    "errors": [],
-    "has_more": False
-})
+initial_code = """
+    def example():
+        i = 0
+        if i == 0:
+            print("i is zero")
+        while i < 10:
+            print("This is an infinite loop")
+            if i > -1:
+                print("Hello")
+"""
 
-print("Code", result['code'])
-print("Errors", result['errors'])
-end = datetime.datetime.now()
-elapsed_time = (end - start).total_seconds()
-print(f"Elapsed time: {elapsed_time} seconds")
+with mlflow.start_run(run_name="LangGraph_CodeFix"):
+    start = datetime.datetime.now()
+    
+    result = app.invoke({
+        "code": initial_code,
+        "errors": [],
+        "has_more": False
+    })
 
-timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-output_file = f"./outputs/graph/{timestamp}_result.txt"
+    end = datetime.datetime.now()
+    elapsed_time = (end - start).total_seconds()
 
-with open(output_file, "w") as f:
-    f.write(result['code'])
+    # Parameters
+    mlflow.log_param("nodes", ["FixSyntax", "FixLoop", "FixTautologies"])
+    
+    # Metrics
+    mlflow.log_metric("execution_time", elapsed_time)
+    mlflow.log_metric("num_errors", len(result["errors"]))
+
+    # Artifacts
+    os.makedirs("./outputs/graph", exist_ok=True)
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_file = f"./outputs/graph/{timestamp}_result.txt"
+    with open(output_file, "w") as f:
+        f.write(result["code"])
+    
+    mlflow.log_artifact(output_file)
+
+    # Original code
+    with open("./outputs/graph/original_code.txt", "w") as f:
+        f.write(initial_code)
+    mlflow.log_artifact("./outputs/graph/original_code.txt")
