@@ -1,8 +1,19 @@
+import os
+import yaml
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+    os.environ["LANGSMITH_TRACING"] = config["langsmith"]["tracing"]
+    if config["langsmith"]["endpoint"]:
+        os.environ["LANGSMITH_ENDPOINT"] = config["langsmith"]["endpoint"]
+    if config["langsmith"]["apikey"]:
+        os.environ["LANGSMITH_API_KEY"] = config["langsmith"]["apikey"]
+    if config["langsmith"]["project"]:
+        os.environ["LANGSMITH_PROJECT"] = config["langsmith"]["project"]
+
 import mlflow
 from langgraph.graph import StateGraph
 from typing import TypedDict
 import datetime
-import os
 
 mlflow.set_tracking_uri("http://localhost:8080")
 

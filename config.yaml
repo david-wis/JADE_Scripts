@@ -1,2 +1,7 @@
 # model: qwen3:8b
 model: "devstral:latest"
+langsmith:
+  tracing: "true"
+  endpoint: https://api.smith.langchain.com
+  apikey: 
+  project: 
