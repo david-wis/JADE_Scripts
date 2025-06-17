@@ -1,11 +1,11 @@
 from langchain_core.messages import HumanMessage
 from langchain_ollama.llms import OllamaLLM
 import json
+import yaml
 
-# MODEL = "codellama:13b"
-# MODEL = "llama3.2:latest"
-MODEL = "devstral:latest"
-llm = OllamaLLM(model=MODEL)
+with open("config.yaml", "r") as file:
+    MODEL = yaml.safe_load(file)["model"]
+    llm = OllamaLLM(model=MODEL)
 
 def ask(prompt: str) -> dict:
     response = llm.invoke([HumanMessage(content=prompt)])
