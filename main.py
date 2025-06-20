@@ -5,7 +5,7 @@ import graphs
 import mlflow
 import datetime
 import logging
-
+import uuid
 import graphs.graph1
 import graphs.graphIdentifier
 
@@ -30,6 +30,18 @@ with open("config.yaml", "r") as file:
     CONFIG = yaml.safe_load(file)
     MODEL = CONFIG["model"]
     MODE = CONFIG["mode"]
+    INPUTS = CONFIG["inputs"]
+
+files = []
+if os.path.exists(INPUTS):
+    if os.path.isdir(INPUTS):
+        files = [str(p) for p in os.listdir(INPUTS) if os.path.isfile(f"{str(os.path.dirname(INPUTS))}/{p}")]
+    elif os.path.isfile(INPUTS):
+        files = [str(os.path.basename(INPUTS))]
+    else:
+        raise ValueError("INPUT NOT FOUND")
+else:
+    raise ValueError("INPUT NOT FOUND")    
 
 mlflow.set_tracking_uri("http://localhost:8080")
 mlflow.langchain.autolog()
@@ -45,66 +57,66 @@ graph_dict = {
 }
 
 graph_strategy = graph_dict.get(MODE, graphs.graph1)
-
 graph = graph_strategy.graph
-
 graph_name = graph_strategy.graph_name
 
 app = graph.compile()
 
-initial_code = """
-    def example():
-        i = 0
-        if i == 0:
-            print("i is zero")
-        while i < 10:
-            print("This is an infinite loop")
-            if i > -1:
-                print("Hello")
-"""
+execution_id = uuid.uuid4()
 
-if MODE == "detect":
-    initial_code = "\n".join(
-        f"{i + 1}: {line}" for i, line in enumerate(initial_code.strip().splitlines())
-    )
+for file_name in files:
+    print(file_name)
+    if file_name.endswith(".txt"):
+        with open(f"{os.path.dirname(INPUTS)}/{file_name}", "r") as f:
+            initial_code = f.read()
+    dataset_name = file_name.split(".")[0]
+    output_folder = f"./outputs/{execution_id}-{dataset_name}"
+    
+    if MODE == "detect":
+        initial_code = "\n".join(
+            f"{i + 1}: {line}" for i, line in enumerate(initial_code.strip().splitlines())
+        )
+    
+    with mlflow.start_run(run_name=f"{graph_name}-{execution_id}-{dataset_name}"):
+        start = datetime.datetime.now()
+        result = app.invoke({
+            "code": initial_code,
+            "errors": [],
+            "has_more": False
+        })
 
+        end = datetime.datetime.now()
+        elapsed_time = (end - start).total_seconds()
 
-with mlflow.start_run(run_name=graph_name) as run:
-    start = datetime.datetime.now()
+        # Parameterss
+        mlflow.log_param("nodes", list(graph.nodes.keys()))
+        mlflow.log_param("execution_id", execution_id)
+        mlflow.log_param("dataset_name", dataset_name)
+        
+        
+        # Metrics
+        mlflow.log_metric("execution_time", elapsed_time)
+        mlflow.log_metric("num_errors", len(result["errors"]))
 
-    result = app.invoke({"code": initial_code, "errors": [], "has_more": False})
+        # Artifacts
+        os.makedirs(output_folder, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_file = f"{output_folder}/{timestamp}_result.txt"
+        errors_file = f"{output_folder}/{timestamp}_errors.txt"
+        
+        with open(output_file, "w") as f:
+            f.write(result["code"])
+            
+        with open(errors_file, "w") as f:
+            f.write("\n".join(result["errors"]))
+        
+        mlflow.log_artifact(output_file)
+        mlflow.log_artifact(errors_file)
 
-    end = datetime.datetime.now()
-    elapsed_time = (end - start).total_seconds()
-
-    # Parameters
-    mlflow.set_active_model(name=MODEL.split(":")[0])
-    mlflow.log_param("nodes", list(graph.nodes.keys()))
-
-    mlflow.log_trace
-    # Metrics
-    mlflow.log_metric("execution_time", elapsed_time)
-    mlflow.log_metric("num_errors", len(result["errors"]))
-
-    # Artifacts
-    os.makedirs("./outputs/graph", exist_ok=True)
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_file = f"./outputs/graph/{timestamp}_result.txt"
-    errors_file = f"./outputs/graph/{timestamp}_errors.txt"
-
-    with open(output_file, "w") as f:
-        f.write(result["code"])
-
-    with open(errors_file, "w") as f:
-        f.write("\n".join(result["errors"]))
-
-    mlflow.log_artifact(output_file)
-    mlflow.log_artifact(errors_file)
-
-    # Original code
-    with open("./outputs/graph/original_code.txt", "w") as f:
-        f.write(initial_code)
-    mlflow.log_artifact("./outputs/graph/original_code.txt")
+        # Original code
+        with open(f"{output_folder}/original_code.txt", "w") as f:
+            f.write(initial_code)
+        mlflow.log_artifact(f"{output_folder}/original_code.txt")
 
 
 logger.info("Code fixing process completed.")

@@ -3,3 +3,4 @@ __pycache__
 mlartifacts
 mlruns
 .venv/*
+config.yaml

@@ -1,6 +1,7 @@
 # model: "deepcoder:latest"
-# model: "devstral:latest"
-model: "deepseek-r1:14b"
+model: "devstral:latest"
+# model: "deepseek-r1:14b"
+inputs: "inputs/foo.txt"
 langsmith:
   enable: false
   tracing: "true"
@@ -11,3 +12,4 @@ steps:
   fix_tautologies: true
   fix_infinite_loop: true
 mode: fix
+
