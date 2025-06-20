@@ -8,11 +8,10 @@ def fix(code: str) -> dict:
     You MUST return the fixed code, ensuring that it is syntactically correct and logically sound.
     You MUST not make any comments or explanations, just return the fixed code.
 
-    You MUST return the code in a json format with three fields: "code", "error", and "has_more".
-    Return a pure json object with no additional text or formatting.
-    The "code" field should contain the fixed code.
-    The "error" field should be an empty string if there are no errors, or the string "Tautology" if a tautology was found and fixed.
-    The "has_more" field should be a boolean indicating whether there are more tautologies in the code that were not fixed.
+    Return a <METADATA> tag with the following json:
+    The "error" field should be an empty string if there are no errors, or the string "Tautology" if a tautology or contradiction was found and fixed.
+    The "has_more" field should be a boolean indicating whether there are more tautologies or contradictions in the code that were not fixed.
+    After the <METADATA> tag, return a <CODE> tag containing the fixed code.
 
     You are allowed to:
     - Remove or simplify tautological conditions.
@@ -30,14 +29,43 @@ def fix(code: str) -> dict:
     3. Only fix one tautology or contradiction. Ignore the rest.
 
     # Example Fix
-    Input:
+    ## Input 1
     x = 5
     if x == x:
         print("This always runs")
 
-    Fix:
+    ## Output 1
+    <METADATA>
+    {{
+        "error": "Tautology",
+        "has_more": false
+    }}
+    </METADATA>
+    <CODE>
     x = 5
     print("This always runs")
+    </CODE>
+
+    ## Input 2
+    x = 10
+    if x == 10:
+        print("x is 10")
+    if x > 1:
+        print("x is greater than 1")
+    
+    ## Output 2
+    <METADATA>
+    {{
+        "error": "Tautology",
+        "has_more": true
+    }}
+    </METADATA>
+    <CODE>
+    x = 10
+    print("x is 10")
+    if x > 1:
+        print("x is greater than 1")
+    </CODE>
 
     # Code to fix
     {code}

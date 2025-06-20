@@ -8,11 +8,10 @@ def fix(code: str) -> dict:
     You MUST return the fixed code, ensuring that it is syntactically correct and logically sound.
     You MUST not make any comments or explanations, just return the fixed code.
 
-    You MUST return the code in a json format with three fields: "code", "error", and "has_more".
-    Return a pure json object with no additional text or formatting.
-    The "code" field should contain the fixed code.
+    Return a <METADATA> tag with the following json:
     The "error" field should be an empty string if there are no errors, or the string "Infinite loop" if an infinite loop was found and fixed.
     The "has_more" field should be a boolean indicating whether there are more infinite loops in the code that were not fixed.
+    After the <METADATA> tag, return a <CODE> tag containing the fixed code.
 
     You are allowed to:
     - Modify loop conditions.
@@ -32,16 +31,49 @@ def fix(code: str) -> dict:
     5. Preserve the overall logic and intent of the program.
 
     # Example Fix
-    Input:
+    ## Input 1
     i = 0
     while i < 100:
         print("Still running")
 
-    Fix:
+    ## Output 1
+    <METADATA>
+    {{
+        "error": "Infinite loop",
+        "has_more": false
+    }}
+    </METADATA>
+    <CODE>
     i = 0
     while i < 100:
         print("Still running")
         i += 1
+    </CODE>
+
+    ## Input 2
+    i = 10
+    while i > 0:
+        print("Still running")
+        j = 0
+        while j < 4:
+            print("Inner loop")
+
+    ## Output 2
+    <METADATA>
+    {{
+        "error": "Infinite loop",
+        "has_more": true
+    }}
+    </METADATA>
+    <CODE>
+    i = 10
+    while i > 0:
+        print("Still running")
+        j = 0
+        while j < 4:
+            print("Inner loop")
+            j += 1
+    </CODE>
 
     # Code to fix
     {code}
