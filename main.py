@@ -7,6 +7,8 @@ import datetime
 import logging
 
 import graphs.graph1
+import graphs.graphIdentifier
+
 
 def load_langsmith_config():
     with open("config.yaml", "r") as file:
@@ -22,19 +24,32 @@ def load_langsmith_config():
         if config["langsmith"]["project"]:
             os.environ["LANGSMITH_PROJECT"] = config["langsmith"]["project"]
 
+
 load_langsmith_config()
 with open("config.yaml", "r") as file:
     CONFIG = yaml.safe_load(file)
     MODEL = CONFIG["model"]
-    
+    MODE = CONFIG["mode"]
 
 mlflow.set_tracking_uri("http://localhost:8080")
 mlflow.langchain.autolog()
 
-logger  = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
-graph = graphs.graph1.graph 
+graph_dict = {
+    "fix": graphs.graph1,
+    "detect": graphs.graphIdentifier,
+}
+
+graph_strategy = graph_dict.get(MODE, graphs.graph1)
+
+graph = graph_strategy.graph
+
+graph_name = graph_strategy.graph_name
+
 app = graph.compile()
 
 initial_code = """
@@ -48,22 +63,24 @@ initial_code = """
                 print("Hello")
 """
 
-with mlflow.start_run(run_name="LangGraph_CodeFix"):
+if MODE == "detect":
+    initial_code = "\n".join(
+        f"{i + 1}: {line}" for i, line in enumerate(initial_code.strip().splitlines())
+    )
+
+
+with mlflow.start_run(run_name=graph_name) as run:
     start = datetime.datetime.now()
-    
-    result = app.invoke({
-        "code": initial_code,
-        "errors": [],
-        "has_more": False
-    })
+
+    result = app.invoke({"code": initial_code, "errors": [], "has_more": False})
 
     end = datetime.datetime.now()
     elapsed_time = (end - start).total_seconds()
 
     # Parameters
-    mlflow.set_active_model(name=MODEL.split(':')[0])
+    mlflow.set_active_model(name=MODEL.split(":")[0])
     mlflow.log_param("nodes", list(graph.nodes.keys()))
-    
+
     mlflow.log_trace
     # Metrics
     mlflow.log_metric("execution_time", elapsed_time)
@@ -73,15 +90,21 @@ with mlflow.start_run(run_name="LangGraph_CodeFix"):
     os.makedirs("./outputs/graph", exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_file = f"./outputs/graph/{timestamp}_result.txt"
-    
+    errors_file = f"./outputs/graph/{timestamp}_errors.txt"
+
     with open(output_file, "w") as f:
         f.write(result["code"])
-    
+
+    with open(errors_file, "w") as f:
+        f.write("\n".join(result["errors"]))
+
     mlflow.log_artifact(output_file)
+    mlflow.log_artifact(errors_file)
 
     # Original code
     with open("./outputs/graph/original_code.txt", "w") as f:
         f.write(initial_code)
     mlflow.log_artifact("./outputs/graph/original_code.txt")
+
 
 logger.info("Code fixing process completed.")
