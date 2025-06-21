@@ -1,29 +1,83 @@
 from langgraph.graph import StateGraph
 from typing import TypedDict
-from identifiers.detect_infinite_loops import detect_infinite_loops
-from identifiers.detect_tautologies import detect_tautologies
+
+from identifiers.detect_infinite_loops import detect as detect_loops
+from identifiers.has_infinite_loops import presence as has_loops
+from identifiers.detect_tautologies import detect as detect_tauts
+from identifiers.has_tautologies import presence as has_tauts
+from identifiers.llm_utils import extract_presence_from_response
 
 
 class CodeState(TypedDict):
     code: str
     errors: list[str]
+    presence: dict[str, str]
 
 
-def node_detect_loops(state: CodeState) -> CodeState:
-    state["errors"] += detect_infinite_loops(state["code"])
+def get_initial_state(initial_code) -> CodeState:
+    return {
+        "code": initial_code,
+        "errors": [],
+        "presence": {},
+    }
+
+
+def node_check_infinite_loop_presence(state: CodeState) -> CodeState:
+    raw_response = has_loops(state["code"])
+    parsed = extract_presence_from_response(raw_response)
+    state["presence"]["infinite_loops"] = parsed
+    return state
+
+
+def node_detect_infinite_loops(state: CodeState) -> CodeState:
+    state["errors"] += detect_loops(state["code"])
+    return state
+
+
+def node_check_tautology_presence(state: CodeState) -> CodeState:
+    raw_response = has_tauts(state["code"])
+    parsed = extract_presence_from_response(raw_response)
+    state["presence"]["tautologies"] = parsed
     return state
 
 
 def node_detect_tautologies(state: CodeState) -> CodeState:
-    state["errors"] += detect_tautologies(state["code"])
+    state["errors"] += detect_tauts(state["code"])
     return state
+
+
+def condition_infinite_loop_presence(state: CodeState) -> str:
+    result = state["presence"].get("infinite_loops", "NO")
+    return result if result in ("YES", "NO") else "NO"
+
+
+def condition_tautology_presence(state: CodeState) -> str:
+    result = state["presence"].get("tautologies", "NO")
+    return result if result in ("YES", "NO") else "NO"
 
 
 graph = StateGraph(CodeState)
 graph_name = "CodeIdentifier"
 
-graph.add_node("DetectLoops", node_detect_loops)
+graph.add_node("CheckInfiniteLoopPresence", node_check_infinite_loop_presence)
+graph.add_node("DetectInfiniteLoops", node_detect_infinite_loops)
+graph.add_node("CheckTautologyPresence", node_check_tautology_presence)
 graph.add_node("DetectTautologies", node_detect_tautologies)
 
-graph.set_entry_point("DetectLoops")
-graph.add_edge("DetectLoops", "DetectTautologies")
+graph.add_conditional_edges(
+    "CheckInfiniteLoopPresence",
+    condition_infinite_loop_presence,
+    {"YES": "DetectInfiniteLoops", "NO": "CheckTautologyPresence"},
+)
+
+graph.add_edge("DetectInfiniteLoops", "CheckTautologyPresence")
+
+graph.add_conditional_edges(
+    "CheckTautologyPresence",
+    condition_tautology_presence,
+    {"YES": "DetectTautologies", "NO": "__end__"},
+)
+
+graph.add_edge("DetectTautologies", "__end__")
+
+graph.set_entry_point("CheckInfiniteLoopPresence")

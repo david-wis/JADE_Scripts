@@ -35,13 +35,17 @@ with open("config.yaml", "r") as file:
 files = []
 if os.path.exists(INPUTS):
     if os.path.isdir(INPUTS):
-        files = [str(p) for p in os.listdir(INPUTS) if os.path.isfile(f"{str(os.path.dirname(INPUTS))}/{p}")]
+        files = [
+            str(p)
+            for p in os.listdir(INPUTS)
+            if os.path.isfile(f"{str(os.path.dirname(INPUTS))}/{p}")
+        ]
     elif os.path.isfile(INPUTS):
         files = [str(os.path.basename(INPUTS))]
     else:
         raise ValueError("INPUT NOT FOUND")
 else:
-    raise ValueError("INPUT NOT FOUND")    
+    raise ValueError("INPUT NOT FOUND")
 
 mlflow.set_tracking_uri("http://localhost:8080")
 mlflow.langchain.autolog()
@@ -56,6 +60,7 @@ graph_dict = {
     "detect": graphs.graphIdentifier,
 }
 
+# mlflow.set_experiment(MODE)
 graph_strategy = graph_dict.get(MODE, graphs.graph1)
 graph = graph_strategy.graph
 graph_name = graph_strategy.graph_name
@@ -71,29 +76,25 @@ for file_name in files:
             initial_code = f.read()
     dataset_name = file_name.split(".")[0]
     output_folder = f"./outputs/{execution_id}-{dataset_name}"
-    
+
     if MODE == "detect":
         initial_code = "\n".join(
-            f"{i + 1}: {line}" for i, line in enumerate(initial_code.strip().splitlines())
+            f"{i + 1}: {line}"
+            for i, line in enumerate(initial_code.strip().splitlines())
         )
-    
+
     with mlflow.start_run(run_name=f"{graph_name}-{execution_id}-{dataset_name}"):
         start = datetime.datetime.now()
-        result = app.invoke({
-            "code": initial_code,
-            "errors": [],
-            "has_more": False
-        })
+        result = app.invoke(graph_strategy.get_initial_state(initial_code))
 
         end = datetime.datetime.now()
         elapsed_time = (end - start).total_seconds()
 
-        # Parameterss
+        # Parameters
         mlflow.log_param("nodes", list(graph.nodes.keys()))
         mlflow.log_param("execution_id", execution_id)
         mlflow.log_param("dataset_name", dataset_name)
-        
-        
+
         # Metrics
         mlflow.log_metric("execution_time", elapsed_time)
         mlflow.log_metric("num_errors", len(result["errors"]))
@@ -103,13 +104,13 @@ for file_name in files:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         output_file = f"{output_folder}/{timestamp}_result.txt"
         errors_file = f"{output_folder}/{timestamp}_errors.txt"
-        
+
         with open(output_file, "w") as f:
             f.write(result["code"])
-            
+
         with open(errors_file, "w") as f:
             f.write("\n".join(result["errors"]))
-        
+
         mlflow.log_artifact(output_file)
         mlflow.log_artifact(errors_file)
 
