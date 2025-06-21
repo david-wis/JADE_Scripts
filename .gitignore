@@ -4,3 +4,4 @@ mlartifacts
 mlruns
 .venv/*
 config.yaml
+.DS_Store

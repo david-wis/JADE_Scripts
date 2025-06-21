@@ -1,11 +1,11 @@
 from langgraph.graph import StateGraph
 from typing import TypedDict
 
-from identifiers.detect_infinite_loops import detect as detect_loops
-from identifiers.has_infinite_loops import presence as has_loops
-from identifiers.detect_tautologies import detect as detect_tauts
-from identifiers.has_tautologies import presence as has_tauts
 from identifiers.llm_utils import extract_presence_from_response
+from identifiers.has_infinite_loops import has_infinite_loops
+from identifiers.has_tautologies import has_tautologies
+from identifiers.detect_infinite_loops import detect_infinite_loops
+from identifiers.detect_tautologies import detect_tautologies
 
 
 class CodeState(TypedDict):
@@ -23,26 +23,22 @@ def get_initial_state(initial_code) -> CodeState:
 
 
 def node_check_infinite_loop_presence(state: CodeState) -> CodeState:
-    raw_response = has_loops(state["code"])
-    parsed = extract_presence_from_response(raw_response)
-    state["presence"]["infinite_loops"] = parsed
+    state["presence"]["infinite_loops"] = has_infinite_loops(state["code"])
     return state
 
 
 def node_detect_infinite_loops(state: CodeState) -> CodeState:
-    state["errors"] += detect_loops(state["code"])
+    state["errors"] += detect_infinite_loops(state["code"])
     return state
 
 
 def node_check_tautology_presence(state: CodeState) -> CodeState:
-    raw_response = has_tauts(state["code"])
-    parsed = extract_presence_from_response(raw_response)
-    state["presence"]["tautologies"] = parsed
+    state["presence"]["tautologies"] = has_tautologies(state["code"])
     return state
 
 
 def node_detect_tautologies(state: CodeState) -> CodeState:
-    state["errors"] += detect_tauts(state["code"])
+    state["errors"] += detect_tautologies(state["code"])
     return state
 
 

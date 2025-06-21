@@ -1,7 +1,7 @@
 from identifiers.llm_utils import ask_presence
 
 
-def presence(code: str) -> str:
+def has_infinite_loops(code: str) -> str:
     prompt = f"""
 # Instructions
 You are a static code analyzer responsible for identifying whether a piece of Python code contains ANY true infinite loop.
