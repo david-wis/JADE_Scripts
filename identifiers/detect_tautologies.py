@@ -1,87 +1,178 @@
-from identifiers.llm_utils import ask
+from identifiers.llm_utils import ask_detection
 
 
 def detect_tautologies(code: str) -> list[str]:
     prompt = f"""
-You are a static code analyzer.
+# Instructions
+You are a static code analyzer responsible for identifying tautological or logically redundant `if` or `elif` conditions in Python code.
 
-Task:
-- Detect tautologies in Python code.
+You MUST carefully analyze each conditional statement and report any expression that is always true or always false (e.g., `if True:`, `if x == x:`).
 
-Definition:
-- A tautology is a conditional that always evaluates to True, such as:
-  - `if x == x`
-  - `if True`
-  - `if i == 0` when `i` was just assigned `0` and not modified before
+You MUST NOT modify the code or explain the reasoning.
+You MUST only return the original lines that contain tautological `if` or `elif` conditions.
 
-Rules:
-- Code is line-numbered (e.g., "3: if x == x:")
-- Output one real tautology per line
-- Format exactly as:
-  Tautology: <line_number>: <code>
-- Do NOT include any non-tautological code
-- Do NOT guess
-- Do NOT include `while` statements
-- Do NOT return explanations, markdown, or list brackets
+# Definition
+A tautology is any conditional that always evaluates to `True` or `False`, regardless of input or context.
+Examples include:
+- `if True:`
+- `if False:`
+- `if 1 == 1:`
+- `if x == x:` (when x is not changed)
+- `if not False:`
+- `if 0 > 1:`
+- `if x != x:` (always false)
 
-Sample code inputs:
+# Rules
+- ONLY return lines that start with `if` or `elif` and are tautologies or contradictions.
+- DO NOT include loops, print statements, or function definitions.
+- DO NOT include conditionals that could evaluate differently based on program state (e.g., `if x > 0`)
+- DO NOT include explanations, reasoning, or code not present in the input.
+- Wrap the results in a <LINES>...</LINES> block.
+- If no tautologies or contradictions are found, return an empty <LINES> block.
 
-# Input 1
-1: x = 1
-2: if x == x:
-3:     print("match")
-4: y = False
-5: if y:
-6:     print("never")
-
-# Expected Output 1
-Tautology: 2: if x == x:
-
-# Input 2
-1: z = 10
-2: if True:
-3:     print(z)
-4: if z == z:
-5:     print("ok")
-
-# Expected Output 2
-Tautology: 2: if True:
-Tautology: 4: if z == z:
-
-# Input 3
-1: i = 0
-2: if i == 0:
-3:     print("start")
-4: i = 1
-5: if i == 0:
-6:     print("no")
-
-# Expected Output 3
-Tautology: 2: if i == 0:
-
-1: i = 0
-2: while i < 5:
-3:     print(i)
-4: if i > 5:
-5:     print("done")
-
-# Expected Output 4
-(none)
-
-# Input 5 
-1: while True:
-2:     print("looping")
-3: x = 5
-4: if x > 0:
-5:     print("ok")
-
-# Expected Output 5
-(none)
-
-Output format:
+# Output format
+<LINES>
 Tautology: <line_number>: <code>
+...
+</LINES>
 
-Code:
+# Examples
+
+## Input
+1: x = 5
+2: if x == x:
+3:     print("This always runs")
+
+## Output
+<LINES>
+Tautology: 2: if x == x:
+</LINES>
+
+## Input
+1: if True:
+2:     print("Hello")
+
+## Output
+<LINES>
+Tautology: 1: if True:
+</LINES>
+
+## Input
+1: if not False:
+2:     print("Yep")
+
+## Output
+<LINES>
+Tautology: 1: if not False:
+</LINES>
+
+## Input
+1: if 1 == 1:
+2:     print("Always equal")
+
+## Output
+<LINES>
+Tautology: 1: if 1 == 1:
+</LINES>
+
+## Input
+1: if 0 > 1:
+2:     print("Never")
+
+## Output
+<LINES>
+Tautology: 1: if 0 > 1:
+</LINES>
+
+## Input
+1: if False:
+2:     print("Never reached")
+
+## Output
+<LINES>
+Tautology: 1: if False:
+</LINES>
+
+## Input
+1: if x > 0:
+2:     print("Positive")
+
+## Output
+<LINES>
+</LINES>
+
+## Input
+1: x = True
+2: if x:
+3:     print("Maybe")
+
+## Output
+<LINES>
+</LINES>
+
+## Input
+1: def test():
+2:     if 2 == 2:
+3:         return "OK"
+
+## Output
+<LINES>
+Tautology: 2: if 2 == 2:
+</LINES>
+
+## Input
+1: a = 10
+2: b = 20
+3: if a == b:
+4:     print("Equal")
+
+## Output
+<LINES>
+</LINES>
+
+## Input
+1: def redundant():
+2:     x = 42
+3:     if x == x:
+4:         print("Trivial truth")
+
+## Output
+<LINES>
+Tautology: 3: if x == x:
+</LINES>
+
+## Input
+1: x = 0
+2: while x < 5:
+3:     if x == x:
+4:         print(x)
+5:     x += 1
+
+## Output
+<LINES>
+Tautology: 3: if x == x:
+</LINES>
+
+## Input
+1: if not (False or False):
+2:     print("Always")
+
+## Output
+<LINES>
+Tautology: 1: if not (False or False):
+</LINES>
+
+## Input
+1: x = 10
+2: if x != x:
+3:     print("Impossible")
+
+## Output
+<LINES>
+Tautology: 2: if x != x:
+</LINES>
+
+# Code to analyze
 {code}
 """
-    return ask(prompt)
+    return ask_detection(prompt)

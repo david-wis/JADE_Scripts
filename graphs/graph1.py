@@ -20,6 +20,14 @@ class CodeState(TypedDict):
     has_more: bool
 
 
+def get_initial_state(initial_code) -> CodeState:
+    return {
+        "code": initial_code,
+        "errors": [],
+        "has_more": False,
+    }
+
+
 ### Nodes
 def apply_syntax_fixer(state: CodeState) -> CodeState:
     from fixers import fix_syntax
