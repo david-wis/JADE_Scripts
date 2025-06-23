@@ -1,7 +1,7 @@
-from identifiers.llm_utils import ask_detection
+from identifiers.llm_utils import ask_location
 
 
-def detect_tautologies(code: str) -> list[str]:
+def locate_tautologies(code: str) -> list[str]:
     prompt = f"""
 # Instructions
 You are a static code analyzer responsible for identifying tautological or logically redundant `if` or `elif` conditions in Python code.
@@ -175,4 +175,4 @@ Tautology: 2: if x != x:
 # Code to analyze
 {code}
 """
-    return ask_detection(prompt)
+    return ask_location(prompt)

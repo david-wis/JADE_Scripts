@@ -31,6 +31,7 @@ with open("config.yaml", "r") as file:
     MODEL = CONFIG["model"]
     MODE = CONFIG["mode"]
     INPUTS = CONFIG["inputs"]
+    INPUT_QUANTITY = CONFIG["input_quantity"]
 
 files = []
 if os.path.exists(INPUTS):
@@ -39,7 +40,7 @@ if os.path.exists(INPUTS):
             str(p)
             for p in os.listdir(INPUTS)
             if os.path.isfile(f"{str(os.path.dirname(INPUTS))}/{p}")
-        ]
+        ][:INPUT_QUANTITY]
     elif os.path.isfile(INPUTS):
         files = [str(os.path.basename(INPUTS))]
     else:
@@ -57,7 +58,7 @@ logging.basicConfig(
 
 graph_dict = {
     "fix": graphs.graph1,
-    "detect": graphs.graphIdentifier,
+    "locate": graphs.graphIdentifier,
 }
 
 # mlflow.set_experiment(MODE)
@@ -71,13 +72,13 @@ execution_id = uuid.uuid4()
 
 for file_name in files:
     print(file_name)
-    if file_name.endswith(".txt"):
+    if file_name.endswith(".txt") or file_name.endswith(".py"):
         with open(f"{os.path.dirname(INPUTS)}/{file_name}", "r") as f:
             initial_code = f.read()
     dataset_name = file_name.split(".")[0]
     output_folder = f"./outputs/{execution_id}-{dataset_name}"
 
-    if MODE == "detect":
+    if MODE == "locate":
         initial_code = "\n".join(
             f"{i + 1}: {line}"
             for i, line in enumerate(initial_code.strip().splitlines())

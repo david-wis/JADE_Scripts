@@ -1,12 +1,11 @@
 from langgraph.graph import StateGraph
 from typing import TypedDict
-
+from collections.abc import Callable
 from identifiers.llm_utils import extract_presence_from_response
 from identifiers.has_infinite_loops import has_infinite_loops
 from identifiers.has_tautologies import has_tautologies
-from identifiers.detect_infinite_loops import detect_infinite_loops
-from identifiers.detect_tautologies import detect_tautologies
-
+from identifiers.locate_infinite_loops import locate_infinite_loops
+from identifiers.locate_tautologies import locate_tautologies
 
 class CodeState(TypedDict):
     code: str
@@ -21,59 +20,47 @@ def get_initial_state(initial_code) -> CodeState:
         "presence": {},
     }
 
+def generate_node_check_presence(target_name: str, target_checker: Callable[[str], dict]) -> Callable[[CodeState],CodeState]:
+    def node_check_presence(state: CodeState) -> CodeState:
+        state["presence"][target_name] = target_checker(state["code"])
+        return state
+    return node_check_presence
 
-def node_check_infinite_loop_presence(state: CodeState) -> CodeState:
-    state["presence"]["infinite_loops"] = has_infinite_loops(state["code"])
-    return state
+def generate_node_find(target_name: str, target_finder: Callable[[str], dict]) -> Callable[[CodeState],CodeState]:
+    def node_find(state: CodeState) -> CodeState:
+        state["errors"] += target_finder(state["code"])
+        return state
+    return node_find
 
-
-def node_detect_infinite_loops(state: CodeState) -> CodeState:
-    state["errors"] += detect_infinite_loops(state["code"])
-    return state
-
-
-def node_check_tautology_presence(state: CodeState) -> CodeState:
-    state["presence"]["tautologies"] = has_tautologies(state["code"])
-    return state
-
-
-def node_detect_tautologies(state: CodeState) -> CodeState:
-    state["errors"] += detect_tautologies(state["code"])
-    return state
-
-
-def condition_infinite_loop_presence(state: CodeState) -> str:
-    result = state["presence"].get("infinite_loops", "NO")
-    return result if result in ("YES", "NO") else "NO"
-
-
-def condition_tautology_presence(state: CodeState) -> str:
-    result = state["presence"].get("tautologies", "NO")
-    return result if result in ("YES", "NO") else "NO"
+def generate_condition_presence(target_name: str) -> Callable[[CodeState],str]:
+    def condition_presence(state: CodeState) -> str:
+        result = state["presence"].get(target_name, "NO")
+        return result if result in ("YES", "NO") else "NO"
+    return condition_presence
 
 
 graph = StateGraph(CodeState)
 graph_name = "CodeIdentifier"
 
-graph.add_node("CheckInfiniteLoopPresence", node_check_infinite_loop_presence)
-graph.add_node("DetectInfiniteLoops", node_detect_infinite_loops)
-graph.add_node("CheckTautologyPresence", node_check_tautology_presence)
-graph.add_node("DetectTautologies", node_detect_tautologies)
+graph.add_node("CheckInfiniteLoopPresence", generate_node_check_presence("infinite_loops", has_infinite_loops))
+graph.add_node("LocateInfiniteLoops", generate_node_find("infinite_loops", locate_infinite_loops))
+graph.add_node("CheckTautologyPresence", generate_node_check_presence("tautologies", has_tautologies))
+graph.add_node("LocateTautologies", generate_node_find("tautologies", locate_tautologies)) 
 
 graph.add_conditional_edges(
     "CheckInfiniteLoopPresence",
-    condition_infinite_loop_presence,
-    {"YES": "DetectInfiniteLoops", "NO": "CheckTautologyPresence"},
+    generate_condition_presence("infinite_loops"),
+    {"YES": "LocateInfiniteLoops", "NO": "CheckTautologyPresence"},
 )
 
-graph.add_edge("DetectInfiniteLoops", "CheckTautologyPresence")
+graph.add_edge("LocateInfiniteLoops", "CheckTautologyPresence")
 
 graph.add_conditional_edges(
     "CheckTautologyPresence",
-    condition_tautology_presence,
-    {"YES": "DetectTautologies", "NO": "__end__"},
+    generate_condition_presence("tautologies"),
+    {"YES": "LocateTautologies", "NO": "__end__"},
 )
 
-graph.add_edge("DetectTautologies", "__end__")
+graph.add_edge("LocateTautologies", "__end__")
 
 graph.set_entry_point("CheckInfiniteLoopPresence")

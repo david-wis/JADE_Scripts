@@ -1,7 +1,7 @@
-from identifiers.llm_utils import ask_detection
+from identifiers.llm_utils import ask_location
 
 
-def detect_infinite_loops(code: str) -> list[str]:
+def locate_infinite_loops(code: str) -> list[str]:
     prompt = f"""
 # Instructions
 You are a static code analyzer responsible for identifying infinite loops in Python code.
@@ -181,4 +181,4 @@ Infinite loop: 2: while i > 0:
 # Code to analyze
 {code}
 """
-    return ask_detection(prompt)
+    return ask_location(prompt)

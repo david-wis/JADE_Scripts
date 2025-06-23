@@ -49,8 +49,8 @@ def extract_presence_from_response(response: str) -> str:
     return match.group(1).upper()
 
 
-def ask_detection(prompt: str) -> list[str]:
-    """Run LLM with prompt and extract detection lines."""
+def ask_location(prompt: str) -> list[str]:
+    """Run LLM with prompt and extract lines."""
     response = llm.invoke([HumanMessage(content=prompt)])
     logger.debug(f"LLM response:\n{response}")
     return extract_lines_from_response(response)
