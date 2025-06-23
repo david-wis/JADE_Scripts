@@ -8,6 +8,7 @@ import logging
 import uuid
 import graphs.graph1
 import graphs.graphIdentifier
+from langgraph.graph import StateGraph
 
 
 def load_langsmith_config():
@@ -63,7 +64,7 @@ graph_dict = {
 
 # mlflow.set_experiment(MODE)
 graph_strategy = graph_dict.get(MODE, graphs.graph1)
-graph = graph_strategy.graph
+graph : StateGraph = graph_strategy.graph
 graph_name = graph_strategy.graph_name
 
 app = graph.compile()

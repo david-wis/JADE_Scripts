@@ -133,7 +133,7 @@ def group_by_function(function_names: list[str], code: str) -> dict[str, str]:
 
     
 if __name__ == "__main__":
-    function_names = ["sum", "divide"]
+    function_names = ["validar", "mostrar_lineas", "promedio_numeros", "sin_repetir"]
     code = """
     def sum(a, b):
         return a + b
@@ -149,5 +149,8 @@ if __name__ == "__main__":
     def multiply(a, b):
         return a * b 
     """
-    grouped_functions = group_by_function(function_names, code)
+    with open("inputs/alum_36.py", "r") as file:
+        code2 = file.read()
+
+    grouped_functions = group_by_function(function_names, code2)
     print(grouped_functions)
