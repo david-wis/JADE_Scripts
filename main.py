@@ -94,7 +94,7 @@ for file_name in files:
 
     app = graph.compile()
 
-    FUNCTION_NAMES = ["sin_repetir"]
+    FUNCTION_NAMES = ["sin_repetir", "mostrar_lineas"]
     FUNCTION_NAME = "sin_repetir"
 
     with mlflow.start_run(run_name=f"{graph_name}-{execution_id}-{dataset_name}"):

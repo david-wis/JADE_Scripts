@@ -49,25 +49,25 @@ def extract_functions_from_response(response: str) -> dict[str, str]:
 
     return functions
 
-def group_by_function(function_names: list[str], code: str) -> dict[str, str]:
+def group_by_function(function_name: str, code: str) -> dict[str, str]:
     """
     Group functions and their dependencies into a dictionary.
     """
     prompt = f"""
     # Instructions
-    You are an autonomous agent responsible for grouping functions and their dependencies.
-    You MUST carefully analyze the provided function names and their dependencies.
+    You are an autonomous agent responsible for finding functions and their dependencies.
+    You MUST carefully analyze the provided function name and its dependencies.
     You MUST NOT make any comments or explanations.
-    You MUST return the result inside a single <FUNCTION name="f">...</FUNCTION> tag for each function, where "f" is the function name.
+    You MUST return the result inside a single <FUNCTION name="f">...</FUNCTION> tag, where "f" is the function name.
     You MUST return the code exactly as it is, without any modifications.
 
-    If a function is called by another function, you MUST include it in the output.
+    If a function is called by the provided function or its dependencies, you MUST include it in the output.
 
-    The functions names are provided in a list format (FUNCTION_NAMES).
-    You MUST NOT include any function that is not in the FUNCTION_NAMES list and is not called by any function in the list.
+    Only one function names is provided (FUNCTION_NAME).
+    You MUST NOT include any function that is not called FUNCTION_NAME and is not called by FUNCTION_NAME.
 
     # Input 1
-    FUNCTION_NAMES = ['f1', 'f2']
+    FUNCTION_NAME = 'f1'
     def f1():
         pass
     def f2():
@@ -78,13 +78,9 @@ def group_by_function(function_names: list[str], code: str) -> dict[str, str]:
     def f1():
         pass
     </FUNCTION>
-    <FUNCTION name="f2">
-    def f2():
-        pass
-    </FUNCTION>
 
     # Input 2
-    FUNCTION_NAMES = ['a', 'b']
+    FUNCTION_NAME = 'a'
     def d():
         pass
 
@@ -115,13 +111,19 @@ def group_by_function(function_names: list[str], code: str) -> dict[str, str]:
     def c(i):
         print(i)
     </FUNCTION>
-    <FUNCTION name="b">
-    def b():
-        pass
-    </FUNCTION>
+
+    # Input 3
+    FUNCTION_NAME = 'validate'
+    def validar():
+        return True
+    
+    def mostrar_lineas():
+        return "Lineas"
+    
+    # Output 3
 
     # Code to analyze
-    FUNCTION_NAMES = {function_names}
+    FUNCTION_NAME = {function_name}
     {code}
     """
     response = llm.invoke(
@@ -133,7 +135,7 @@ def group_by_function(function_names: list[str], code: str) -> dict[str, str]:
 
     
 if __name__ == "__main__":
-    function_names = ["validar", "mostrar_lineas", "promedio_numeros", "sin_repetir"]
+    function_name = "validar"
     code = """
     def sum(a, b):
         return a + b
@@ -152,5 +154,5 @@ if __name__ == "__main__":
     with open("inputs/alum_36.py", "r") as file:
         code2 = file.read()
 
-    grouped_functions = group_by_function(function_names, code2)
+    grouped_functions = group_by_function(function_name, code2)
     print(grouped_functions)

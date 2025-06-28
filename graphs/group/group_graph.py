@@ -9,29 +9,35 @@ logging.basicConfig(
 )
 
 class CodeState(TypedDict):
-    code: str
     function_names: list[str]
     groups: dict[str, str]
+    repeat: bool
 
 def get_initial_state(initial_code: str, function_names: list[str]) -> dict:
     return {
         "function_names": function_names,
         "groups": {
             "default": initial_code
-        }
+        },
+        "repeat": False
     }
 
 def apply_group_function(state: CodeState) -> CodeState:
     from graphs.group.nodes.group_functions import group_by_function
 
     code = state["groups"]["default"]
-    response = group_by_function(state["function_names"], code)
+    function_names = state["function_names"]
+    function_name = function_names.pop(0)
+    repeat = len(function_names) > 0
+
+    response = group_by_function(function_name, code)
     state = {
-        "code": code,
         "function_names": state["function_names"],
         "groups": {
-            **response # type: ignore
-        }
+            **state["groups"],
+            **response
+        },
+        "repeat": repeat
     }
     return state
 
@@ -40,9 +46,15 @@ graph_builder = StateGraph(CodeState)
 
 graph_name = "GroupGraph"
 
-graph_builder.add_node("apply_group_function", apply_group_function)
+graph_builder.add_node("ApplyGroupFunction", apply_group_function)
 
-graph_builder.set_entry_point("apply_group_function")
+graph_builder.add_conditional_edges(
+    "ApplyGroupFunction",
+    lambda state: "ApplyGroupFunction" if state["repeat"] else "__end__",
+    ["ApplyGroupFunction", "__end__"]
+)
+
+graph_builder.set_entry_point("ApplyGroupFunction")
 
 subgraph = graph_builder.compile()
 
