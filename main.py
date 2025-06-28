@@ -7,9 +7,9 @@ import datetime
 import logging
 import uuid
 import graphs
-import graphs.sin_repetir_graph
-import graphs.graph1
-import graphs.graphIdentifier
+import graphs.ej1_2025.sin_repetir_graph
+import graphs.fix.graph_fix
+import graphs.locate.graphIdentifier
 import graphs.group
 from langgraph.graph import StateGraph
 
@@ -64,14 +64,14 @@ logging.basicConfig(
 
 graph_dict = {
     "group": graphs.group,
-    "fix": graphs.graph1,
-    "locate": graphs.graphIdentifier,
-    "ej1_2025": graphs.sin_repetir_graph
+    "fix": graphs.fix.graph_fix,
+    "locate": graphs.locate.graphIdentifier,
+    "ej1_2025": graphs.ej1_2025.sin_repetir_graph
 }
 
 
 # mlflow.set_experiment(MODE)
-graph_strategy = graph_dict.get(MODE, graphs.graph1)
+graph_strategy = graph_dict.get(MODE, graphs.fix.graph_fix)
 graph : StateGraph = graph_strategy.graph
 graph_name = graph_strategy.graph_name
 
@@ -94,7 +94,7 @@ for file_name in files:
 
     app = graph.compile()
 
-    FUNCTION_NAMES = ["sin_repetir", "mostrar_lineas"]
+    FUNCTION_NAMES = ["sin_repetir"]
     FUNCTION_NAME = "sin_repetir"
 
     with mlflow.start_run(run_name=f"{graph_name}-{execution_id}-{dataset_name}"):

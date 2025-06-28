@@ -3,7 +3,6 @@ from langchain_core.messages import HumanMessage
 from langchain_ollama.llms import OllamaLLM
 import yaml
 import logging
-import mlflow
 import re
 
 logger = logging.getLogger(__name__)

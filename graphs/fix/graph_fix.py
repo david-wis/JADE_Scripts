@@ -2,6 +2,11 @@ import yaml
 from langgraph.graph import StateGraph
 from typing import TypedDict
 import logging
+from graphs.fix.nodes import fix_tautologies
+from graphs.fix.nodes import fix_syntax
+from graphs.fix.nodes import fix_infinite_loop
+
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -30,16 +35,12 @@ def get_initial_state(initial_code) -> CodeState:
 
 ### Nodes
 def apply_syntax_fixer(state: CodeState) -> CodeState:
-    from fixers import fix_syntax
-
     response = fix_syntax.fix(state["code"])
     state["code"] = response["code"].strip()
     return state
 
 
 def apply_infinite_loop_fixer(state: CodeState) -> CodeState:
-    from fixers import fix_infinite_loop
-
     response = fix_infinite_loop.fix(state["code"])
     logger.info(f"Response infinite loop: {response}")
     state["code"] = response["code"].strip()
@@ -50,8 +51,6 @@ def apply_infinite_loop_fixer(state: CodeState) -> CodeState:
 
 
 def apply_tautology_fixer(state: CodeState) -> CodeState:
-    from fixers import fix_tautologies
-
     response = fix_tautologies.fix(state["code"])
     logger.info(f"Response tautology: {response}")
     state["code"] = response["code"].strip()

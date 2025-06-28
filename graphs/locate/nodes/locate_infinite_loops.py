@@ -1,4 +1,4 @@
-from identifiers.llm_utils import ask_location
+from graphs.locate.nodes.llm_utils import ask_location
 
 
 def locate_infinite_loops(code: str) -> list[str]:

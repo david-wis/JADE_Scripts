@@ -1,11 +1,11 @@
 from langgraph.graph import StateGraph
 from typing import TypedDict
 from collections.abc import Callable
-from identifiers.llm_utils import extract_presence_from_response
-from identifiers.has_infinite_loops import has_infinite_loops
-from identifiers.has_tautologies import has_tautologies
-from identifiers.locate_infinite_loops import locate_infinite_loops
-from identifiers.locate_tautologies import locate_tautologies
+from graphs.locate.nodes.llm_utils import extract_presence_from_response
+from graphs.locate.nodes.has_infinite_loops import has_infinite_loops
+from graphs.locate.nodes.has_tautologies import has_tautologies
+from graphs.locate.nodes.locate_infinite_loops import locate_infinite_loops
+from graphs.locate.nodes.locate_tautologies import locate_tautologies
 
 
 class CodeState(TypedDict):
