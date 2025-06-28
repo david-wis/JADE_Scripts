@@ -10,7 +10,10 @@ import graphs
 import graphs.sin_repetir_graph
 import graphs.graph1
 import graphs.graphIdentifier
+import graphs.group
 from langgraph.graph import StateGraph
+
+from graphs.group.group_graph import separate_in_groups
 
 
 def load_langsmith_config():
@@ -60,17 +63,18 @@ logging.basicConfig(
 )
 
 graph_dict = {
+    "group": graphs.group,
     "fix": graphs.graph1,
     "locate": graphs.graphIdentifier,
     "ej1_2025": graphs.sin_repetir_graph
 }
+
 
 # mlflow.set_experiment(MODE)
 graph_strategy = graph_dict.get(MODE, graphs.graph1)
 graph : StateGraph = graph_strategy.graph
 graph_name = graph_strategy.graph_name
 
-app = graph.compile()
 
 execution_id = uuid.uuid4()
 
@@ -88,9 +92,27 @@ for file_name in files:
             for i, line in enumerate(initial_code.strip().splitlines())
         )
 
+    app = graph.compile()
+
+    FUNCTION_NAMES = ["validar", "mostrar_lineas", "promedio_numeros", "sin_repetir"]
+    FUNCTION_NAME = "sin_repetir"
+
     with mlflow.start_run(run_name=f"{graph_name}-{execution_id}-{dataset_name}"):
         start = datetime.datetime.now()
-        result = app.invoke(graph_strategy.get_initial_state(initial_code))
+
+        groups = separate_in_groups(initial_code, FUNCTION_NAMES)
+
+        for group_name, code in groups.items():
+            logger.info(f"Group: {group_name}")
+            logger.info(f"Code: {code[:20]}...")  # Log first 20 characters for brevity 
+            mlflow.log_text(
+                code, f"{output_folder}/{dataset_name}_{group_name}.py"
+            )
+            
+        if FUNCTION_NAME not in groups:
+            raise ValueError(f"Function '{FUNCTION_NAME}' not found in groups.")
+
+        result = app.invoke(graph_strategy.get_initial_state(groups[FUNCTION_NAME]))
 
         end = datetime.datetime.now()
         elapsed_time = (end - start).total_seconds()
