@@ -52,37 +52,18 @@ def generate_condition_presence(target_name: str) -> Callable[[CodeState], str]:
 graph = StateGraph(CodeState)
 graph_name = "SinRepetirIdentifier"
 
-graph.add_node(
-    "ValidatesText", generate_node_check_presence("validates_text", validates_text)
-)
-graph.add_node(
-    "IncludesNumericWords",
-    generate_node_check_presence("includes_numeric_words", includes_numeric_words),
-)
+graph.add_node("ValidatesText", generate_node_check_presence("validates_text", validates_text))
+graph.add_node("IncludesNumericWords", generate_node_check_presence("includes_numeric_words", includes_numeric_words))
 graph.add_node("Sorts", generate_node_check_presence("sorts", has_sort))
-graph.add_node(
-    "WritesValidFile",
-    generate_node_check_presence("writes_valid_file", writes_valid_file),
-)
+graph.add_node("WritesValidFile",generate_node_check_presence("writes_valid_file", writes_valid_file))
 
-# graph.add_conditional_edges(
-#     "CheckInfiniteLoopPresence",
-#     generate_condition_presence("infinite_loops"),
-#     {"YES": "LocateInfiniteLoops", "NO": "CheckTautologyPresence"},
-# )
 
-# graph.add_edge("LocateInfiniteLoops", "CheckTautologyPresence")
+graph.add_edge("ValidatesText","IncludesNumericWords")
+graph.add_edge("IncludesNumericWords","Sorts")
+graph.add_edge("Sorts","WritesValidFile")
+graph.add_edge("WritesValidFile","__end__")
 
-# graph.add_conditional_edges(
-#     "CheckTautologyPresence",
-#     generate_condition_presence("tautologies"),
-#     {"YES": "LocateTautologies", "NO": "__end__"},
-# )
-
-# graph.add_edge("LocateTautologies", "__end__")
-
-graph.set_entry_point("Sorts")
-
+graph.set_entry_point("ValidatesText")
 
 if __name__ == "__main__":
     with open("inputs/alum_36 copy.py", "r") as file:
