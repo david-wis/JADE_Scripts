@@ -1,5 +1,5 @@
 
-from graphs.locate.nodes.llm_utils import ask_location
+from graphs.generic.locate import ask_location
 def sorts(code: str) -> dict:
     prompt = f"""
 # Instructions

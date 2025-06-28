@@ -4,6 +4,7 @@ import yaml
 import logging
 import mlflow
 import re
+from typing import TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,11 @@ logger = logging.getLogger(__name__)
 with open("config.yaml", "r") as file:
     MODEL = yaml.safe_load(file)["model"]
     llm = OllamaLLM(model=MODEL, temperature=0.0, top_p=1.0, repeat_penalty=1.0)
+
+class LocateCodeState(TypedDict):
+    code: str
+    errors: list[str]
+    presence: dict[str, str]
 
 
 def extract_lines_from_response(response: str) -> list[str]:

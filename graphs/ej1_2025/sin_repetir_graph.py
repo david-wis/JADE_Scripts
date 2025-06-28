@@ -6,14 +6,9 @@ from graphs.ej1_2025.nodes.has_sort import has_sort
 from graphs.ej1_2025.nodes.validates_text import validates_text
 from graphs.ej1_2025.nodes.writes_valid_file import writes_valid_file
 from graphs.ej1_2025.nodes.includes_numeric_words import includes_numeric_words
+from graphs.generic.locate import LocateCodeState
 
-class CodeState(TypedDict):
-    code: str
-    errors: list[str]
-    presence: dict[str, str]
-
-
-def get_initial_state(initial_code) -> CodeState:
+def get_initial_state(initial_code) -> LocateCodeState:
     return {
         "code": initial_code,
         "errors": [],
@@ -23,8 +18,8 @@ def get_initial_state(initial_code) -> CodeState:
 
 def generate_node_check_presence(
     target_name: str, target_checker: Callable[[str], dict]
-) -> Callable[[CodeState], CodeState]:
-    def node_check_presence(state: CodeState) -> CodeState:
+) -> Callable[[LocateCodeState], LocateCodeState]:
+    def node_check_presence(state: LocateCodeState) -> LocateCodeState:
         state["presence"][target_name] = target_checker(state["code"])
         return state
 
@@ -33,23 +28,23 @@ def generate_node_check_presence(
 
 def generate_node_find(
     target_name: str, target_finder: Callable[[str], dict]
-) -> Callable[[CodeState], CodeState]:
-    def node_find(state: CodeState) -> CodeState:
+) -> Callable[[LocateCodeState], LocateCodeState]:
+    def node_find(state: LocateCodeState) -> LocateCodeState:
         state["errors"] += target_finder(state["code"])
         return state
 
     return node_find
 
 
-def generate_condition_presence(target_name: str) -> Callable[[CodeState], str]:
-    def condition_presence(state: CodeState) -> str:
+def generate_condition_presence(target_name: str) -> Callable[[LocateCodeState], str]:
+    def condition_presence(state: LocateCodeState) -> str:
         result = state["presence"].get(target_name, "NO")
         return result if result in ("YES", "NO") else "NO"
 
     return condition_presence
 
 
-graph = StateGraph(CodeState)
+graph = StateGraph(LocateCodeState)
 graph_name = "SinRepetirIdentifier"
 
 graph.add_node("ValidatesText", generate_node_check_presence("validates_text", validates_text))

@@ -1,4 +1,4 @@
-from graphs.locate.nodes.llm_utils import ask_presence
+from graphs.generic.locate import ask_presence
 
 
 def writes_valid_file(code: str) -> str:

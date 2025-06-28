@@ -5,14 +5,21 @@ import yaml
 import logging
 import mlflow
 import re
+from typing import TypedDict
 
 logger = logging.getLogger(__name__)
 
 with open("config.yaml", "r") as file:
     MODEL = yaml.safe_load(file)["model"]
     llm = OllamaLLM(model=MODEL)
+    
+    
+class FixCodeState(TypedDict):
+    code: str
+    errors: list[str]
+    has_more: bool
 
-def extract_json_from_response(response: str) -> dict:
+def extract_response(response: str) -> FixCodeState:
     # logger.info(f"Extracting JSON from response: {response}")
 
     response = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL) # Remove <think> tags if present
@@ -45,8 +52,8 @@ def extract_json_from_response(response: str) -> dict:
         "has_more": metadata.get("has_more", False)
     }
 
-def ask(prompt: str) -> dict:
+def ask(prompt: str) -> FixCodeState:
     response = llm.invoke([HumanMessage(content=prompt)])
 
     logger.debug(f"LLM response: {response}")
-    return extract_json_from_response(response)
+    return extract_response(response)

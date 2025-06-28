@@ -1,4 +1,4 @@
-from graphs.fix.nodes.llm_utils import ask
+from graphs.generic.fix import ask
 
 def fix(code: str) -> dict:
     prompt = f"""

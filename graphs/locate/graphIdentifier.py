@@ -1,20 +1,13 @@
 from langgraph.graph import StateGraph
 from typing import TypedDict
 from collections.abc import Callable
-from graphs.locate.nodes.llm_utils import extract_presence_from_response
 from graphs.locate.nodes.has_infinite_loops import has_infinite_loops
 from graphs.locate.nodes.has_tautologies import has_tautologies
 from graphs.locate.nodes.locate_infinite_loops import locate_infinite_loops
 from graphs.locate.nodes.locate_tautologies import locate_tautologies
+from graphs.generic.locate import LocateCodeState
 
-
-class CodeState(TypedDict):
-    code: str
-    errors: list[str]
-    presence: dict[str, str]
-
-
-def get_initial_state(initial_code) -> CodeState:
+def get_initial_state(initial_code) -> LocateCodeState:
     return {
         "code": initial_code,
         "errors": [],
@@ -24,8 +17,8 @@ def get_initial_state(initial_code) -> CodeState:
 
 def generate_node_check_presence(
     target_name: str, target_checker: Callable[[str], dict]
-) -> Callable[[CodeState], CodeState]:
-    def node_check_presence(state: CodeState) -> CodeState:
+) -> Callable[[LocateCodeState], LocateCodeState]:
+    def node_check_presence(state: LocateCodeState) -> LocateCodeState:
         state["presence"][target_name] = target_checker(state["code"])
         return state
 
@@ -34,23 +27,23 @@ def generate_node_check_presence(
 
 def generate_node_find(
     target_name: str, target_finder: Callable[[str], dict]
-) -> Callable[[CodeState], CodeState]:
-    def node_find(state: CodeState) -> CodeState:
+) -> Callable[[LocateCodeState], LocateCodeState]:
+    def node_find(state: LocateCodeState) -> LocateCodeState:
         state["errors"] += target_finder(state["code"])
         return state
 
     return node_find
 
 
-def generate_condition_presence(target_name: str) -> Callable[[CodeState], str]:
-    def condition_presence(state: CodeState) -> str:
+def generate_condition_presence(target_name: str) -> Callable[[LocateCodeState], str]:
+    def condition_presence(state: LocateCodeState) -> str:
         result = state["presence"].get(target_name, "NO")
         return result if result in ("YES", "NO") else "NO"
 
     return condition_presence
 
 
-graph = StateGraph(CodeState)
+graph = StateGraph(LocateCodeState)
 graph_name = "CodeIdentifier"
 
 graph.add_node(

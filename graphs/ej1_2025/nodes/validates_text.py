@@ -1,4 +1,4 @@
-from graphs.locate.nodes.llm_utils import ask_presence
+from graphs.generic.locate import ask_presence
 
 
 def validates_text(code: str) -> dict:
