@@ -1,6 +1,6 @@
 
-from identifiers.llm_utils import ask_location
-def sorts(code: str) -> dict:
+from identifiers.llm_utils import ask_presence
+def has_sort(code: str) -> dict:
     prompt = f"""
 # Instructions
 You are a static code analyzer responsible for identifying whether the code is implementing the feature of **sorting words by their length**.
@@ -25,16 +25,13 @@ Examples:
 - DO NOT return lines that sort by other criteria (e.g., alphabetically).
 - DO NOT include lines that only define the list or iterate over it.
 - DO NOT include any explanation or reasoning.
-- ONLY RETURN YES or NO
+- Wrap the result in a <LINES>...</LINES> block.
+- If no sorting by length is detected, return an empty <LINES> block.
 
 # Output format
-# Output format
-Return exactly:
-<LINES>
-<line_number>: <code>
-...
-</LINES>
-
+<PRESENCE>YES</PRESENCE>
+or
+<PRESENCE>NO</PRESENCE>
 
 # Examples
 
@@ -43,26 +40,21 @@ Return exactly:
 2: sorted_words = sorted(words, key=len)
 
 ## Output
-<LINES>
-2: sorted_words = sorted(words, key=len)
-</LINES>
+<PRESENCE>YES</PRESENCE>
 
 ## Input
 1: words = ["pear", "banana", "kiwi"]
 2: words.sort(key=lambda w: len(w))
 
 ## Output
-<LINES>
-2: words.sort(key=lambda w: len(w))
-</LINES>
+<PRESENCE>YES</PRESENCE>
 
 ## Input
 1: words = ["pear", "banana", "kiwi"]
 2: sorted_words = sorted(words)
 
 ## Output
-<LINES>
-</LINES>
+<PRESENCE>NO</PRESENCE>
 
 ## Input
 1: words = ["pear", "banana", "kiwi"]
@@ -70,9 +62,7 @@ Return exactly:
 3: words.sort(key=by_length)
 
 ## Output
-<LINES>
-3: words.sort(key=by_length)
-</LINES>
+<PRESENCE>YES</PRESENCE>
 
 
 ## Input
@@ -83,15 +73,10 @@ Return exactly:
 5:             words[j], words[j + 1] = words[j + 1], words[j]
 
 ## Output
-<LINES>
-2: for i in range(len(words)):
-3:     for j in range(len(words) - i - 1):
-4:         if len(words[j]) > len(words[j + 1]):
-5:             words[j], words[j + 1] = words[j + 1], words[j]
-</LINES>
+<PRESENCE>YES</PRESENCE>
 
 
 # Code to analyze
 {code}
 """
-    return ask_location(prompt)
+    return ask_presence(prompt)

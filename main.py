@@ -6,6 +6,8 @@ import mlflow
 import datetime
 import logging
 import uuid
+import graphs
+import graphs.sin_repetir_graph
 import graphs.graph1
 import graphs.graphIdentifier
 from langgraph.graph import StateGraph
@@ -60,6 +62,7 @@ logging.basicConfig(
 graph_dict = {
     "fix": graphs.graph1,
     "locate": graphs.graphIdentifier,
+    "ej1_2025": graphs.sin_repetir_graph
 }
 
 # mlflow.set_experiment(MODE)

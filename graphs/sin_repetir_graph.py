@@ -2,10 +2,10 @@ from langgraph.graph import StateGraph
 from typing import TypedDict
 from collections.abc import Callable
 from graphs.ej1_2025.nodes.sorts import sorts
+from graphs.ej1_2025.nodes.has_sort import has_sort
 from graphs.ej1_2025.nodes.validates_text import validates_text
 from graphs.ej1_2025.nodes.writes_invalid_file import writes_invalid_file
 from graphs.ej1_2025.nodes.includes_numeric_words import includes_numeric_words
-
 
 class CodeState(TypedDict):
     code: str
@@ -59,7 +59,7 @@ graph.add_node(
     "IncludesNumericWords",
     generate_node_check_presence("includes_numeric_words", includes_numeric_words),
 )
-graph.add_node("Sorts", generate_node_check_presence("sorts", sorts))
+graph.add_node("Sorts", generate_node_check_presence("sorts", has_sort))
 graph.add_node(
     "WritesInvalidFile",
     generate_node_check_presence("writes_invalid_file", writes_invalid_file),
@@ -81,12 +81,12 @@ graph.add_node(
 
 # graph.add_edge("LocateTautologies", "__end__")
 
-graph.set_entry_point("ValidatesText")
+graph.set_entry_point("Sorts")
 
 
 if __name__ == "__main__":
     with open("inputs/alumn_36.txt", "r") as file:
         code2 = file.read()
 
-    result = includes_numeric_words(code2)
+    result = has_sort(code2)
     print(result)
