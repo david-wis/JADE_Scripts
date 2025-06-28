@@ -4,7 +4,7 @@ from collections.abc import Callable
 from graphs.ej1_2025.nodes.sorts import sorts
 from graphs.ej1_2025.nodes.has_sort import has_sort
 from graphs.ej1_2025.nodes.validates_text import validates_text
-from graphs.ej1_2025.nodes.writes_invalid_file import writes_invalid_file
+from graphs.ej1_2025.nodes.writes_valid_file import writes_valid_file
 from graphs.ej1_2025.nodes.includes_numeric_words import includes_numeric_words
 
 class CodeState(TypedDict):
@@ -61,8 +61,8 @@ graph.add_node(
 )
 graph.add_node("Sorts", generate_node_check_presence("sorts", has_sort))
 graph.add_node(
-    "WritesInvalidFile",
-    generate_node_check_presence("writes_invalid_file", writes_invalid_file),
+    "WritesValidFile",
+    generate_node_check_presence("writes_valid_file", writes_valid_file),
 )
 
 # graph.add_conditional_edges(
@@ -85,8 +85,9 @@ graph.set_entry_point("Sorts")
 
 
 if __name__ == "__main__":
-    with open("inputs/alumn_36.txt", "r") as file:
+    with open("inputs/alum_36 copy.py", "r") as file:
         code2 = file.read()
 
-    result = has_sort(code2)
+    # result = has_sort(code2)
+    result = writes_valid_file(code2)
     print(result)
